@@ -28,3 +28,22 @@ conda activate cspc
   processes all atoms in the sample at once instead of looping over each one individually in
   Python. All three tests pass, confirming the simulation starts at N0, correctly rejects a
   negative decay rate, and matches the analytical exponential decay law on average.
+
+
+
+---
+
+## PW1 - Lab B: Data, Plotting, and Automation
+
+**What the data showed:**
+- The observed counts started at 5000 and decayed rapidly over time, following a clear
+  downward curve typical of exponential decay.
+
+**Did it match the analytical law?**
+- Yes, the observed data closely follows the analytical curve N0 * exp(-LAMBDA * t); the two
+  panels show the same overall shape and scale, with the small deviations expected from real
+  (noisy) measurements.
+
+**Snakemake pipeline:**
+- The Snakefile defines one rule that rebuilds figure.png from decay_observed.csv by running
+  plot_STUDENT.py, and only reruns when the input files are newer than the output.

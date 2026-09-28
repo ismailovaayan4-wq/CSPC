@@ -47,3 +47,26 @@ conda activate cspc
 **Snakemake pipeline:**
 - The Snakefile defines one rule that rebuilds figure.png from decay_observed.csv by running
   plot_STUDENT.py, and only reruns when the input files are newer than the output.
+
+
+
+
+
+---
+
+## PW2 - Lab A: Motion from Tracking Data
+
+**Mean acceleration measured:**
+- -8.58 m/s^2 (std 28.7 m/s^2), close to the expected -9.81 m/s^2 of free fall. The
+  mean is slightly off because the finite-difference derivative is least accurate at the
+  endpoints, where noise affects it most.
+
+**Why the acceleration is noisy:**
+- A derivative compares neighbouring measurements, so the small random errors in position
+  get magnified each time we differentiate. Acceleration needed two derivatives, so the
+  noise grew much larger than in the position data.
+
+**What integrating back showed:**
+- Integrating the noisy acceleration twice recovered the position to within 0.785 m of the
+  original, because integration is a sum and random noise partly cancels out. Integration
+  suppresses noise, the opposite of differentiation.

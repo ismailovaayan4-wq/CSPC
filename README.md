@@ -70,3 +70,11 @@ conda activate cspc
 - Integrating the noisy acceleration twice recovered the position to within 0.785 m of the
   original, because integration is a sum and random noise partly cancels out. Integration
   suppresses noise, the opposite of differentiation.
+
+
+
+**Bonus - 2D trajectory:**
+- Differentiating x and y separately with np.gradient gave a mean speed of about
+  23.7 and a maximum speed of about 38.7. The speed curve shows small fluctuations
+  caused by measurement noise, but only one derivative was needed, so it is much
+  cleaner than the acceleration in the free-fall data.

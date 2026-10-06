@@ -78,3 +78,33 @@ conda activate cspc
   23.7 and a maximum speed of about 38.7. The speed curve shows small fluctuations
   caused by measurement noise, but only one derivative was needed, so it is much
   cleaner than the acceleration in the free-fall data.
+
+
+
+---
+
+## PW2 - Lab B: Optimization in Chemistry
+
+**Part 2 - Three routes to a minimum:**
+- On the easy convex function f(x), all three methods (gradient descent, Newton, SLSQP)
+  agreed and found x = 3, the single global minimum.
+- On the harder landscape g(x), the methods did not always agree. Starting from x0=0,
+  Newton's method converged to x = 0.17, which turned out to be a maximum (g''(x) < 0),
+  while gradient descent and SLSQP both found the minimum near x = -1.30. Starting from
+  x0=2, Newton correctly found a minimum at x = 1.13 (g''(x) > 0), but SLSQP converged to
+  the other minimum near x = -1.30 instead. This shows that on a complicated landscape,
+  the starting point strongly affects which stationary point each method finds, and Newton's
+  method needs the curvature check to confirm whether it landed on a minimum or a maximum.
+
+
+**Part 3 - Kinetics fit:**
+- Fitted rate constant k = 0.2618, close to the expected ~0.25. The fitted curve
+  passes closely through the noisy measured concentration data.
+
+**Part 4 - Chemical equilibrium:**
+- Both Newton's method and SLSQP converged to the same extent, x = 0.6638.
+  Equilibrium amounts: H2 = 0.3362 mol, I2 = 0.3362 mol, HI = 1.3277 mol.
+
+**Part 5 (bonus) - Titration equivalence point:**
+- The pH curve's slope peaks at V = 50.00 mL, which is the equivalence point,
+  matching the steep jump visible in the pH curve.

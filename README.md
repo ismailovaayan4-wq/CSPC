@@ -135,3 +135,32 @@ Dataset: Heart Disease (Cleveland), Kaggle / UCI, 303 patients.
 - trestbps: not normal. p = 2e-06, skewness 0.71, Q-Q plot bends upward at the top.
 - thalach: not normal (mildly). p = 7e-05, skewness -0.54, Q-Q tails leave the line.
   Because of this, a non-parametric test will be used in Session 2.
+
+
+### Session 2 - Conclusions
+
+**Heart rate comparison (thalach, disease vs healthy):**
+- Because thalach is not normal (Session 1), I used the Mann-Whitney U test (two-tailed) and
+  cross-checked with a t-test. Mann-Whitney: p = 1.9e-13; t-test: p = 3.5e-14.
+- Healthy patients: mean 158.4 +/- 1.5 (SE), disease patients: mean 139.3 +/- 1.9 (SE).
+  The 95% intervals ([155.4, 161.4] and [135.4, 143.1]) do not overlap, which agrees with the
+  test. Conclusion: reject H0, the groups truly differ, healthy patients reach about 19 bpm
+  higher maximum heart rate.
+
+**Age vs thalach:**
+- Pearson r = -0.39, Spearman rho = -0.39 (p ~ 1e-12): older patients tend to reach a lower
+  maximum heart rate. The relationship is moderate (age explains about 15% of the variance).
+
+**Chemical mystery:**
+- Naive analysis: cadmium vs malignancy r = 0.88, benzene vs malignancy r = 0.39. Taken at
+  face value, cadmium looks like the cause.
+- Third variable: pollution_index is almost identical to cadmium (r = 0.98) and is also
+  strongly linked to malignancy (r = 0.90), while it is unrelated to benzene (r = 0.05).
+- After holding pollution_index roughly fixed (narrow bands), cadmium's association drops to
+  about 0.3 while benzene's association rises to about 0.7. So benzene is the real cause and
+  cadmium only looked guilty because it tracks pollution (a confounder). The cadmium value
+  does not reach exactly zero because the bands are still wide enough for pollution to vary.
+
+**Bonus - entropy of target:**
+- Proportions 54.1% / 45.9%, entropy = 0.995 bits (maximum 1 bit): the column is almost
+  perfectly balanced, so the category is hard to guess.

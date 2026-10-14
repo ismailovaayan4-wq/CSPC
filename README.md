@@ -108,3 +108,30 @@ conda activate cspc
 **Part 5 (bonus) - Titration equivalence point:**
 - The pH curve's slope peaks at V = 50.00 mL, which is the equivalence point,
   matching the steep jump visible in the pH curve.
+
+
+
+
+
+
+---
+
+## PW3 - Data, Distributions, Testing, and Causation
+
+Dataset: Heart Disease (Cleveland), Kaggle / UCI, 303 patients.
+
+### Session 1 - Distributions and normality
+
+**Shapes:**
+- age: roughly bell-shaped, centred around 55-60, slightly bumpy.
+- chol: skewed to the right with a long tail and one extreme value near 564.
+- trestbps: skewed to the right, bumpy because blood pressure is recorded in round numbers.
+- thalach: skewed to the left, most patients near 160 with a tail of low values.
+
+**Normality verdicts (Q-Q plot + Shapiro-Wilk):**
+- age: approximately normal. Shapiro rejects it (p = 0.006), but with n = 303 the test is very
+  sensitive, while the Q-Q points follow the line closely and the skewness is small (-0.21).
+- chol: not normal. p = 6e-09, skewness 1.14, and the Q-Q plot bends sharply away at the top.
+- trestbps: not normal. p = 2e-06, skewness 0.71, Q-Q plot bends upward at the top.
+- thalach: not normal (mildly). p = 7e-05, skewness -0.54, Q-Q tails leave the line.
+  Because of this, a non-parametric test will be used in Session 2.

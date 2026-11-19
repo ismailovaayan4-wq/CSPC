@@ -164,3 +164,169 @@ Dataset: Heart Disease (Cleveland), Kaggle / UCI, 303 patients.
 **Bonus - entropy of target:**
 - Proportions 54.1% / 45.9%, entropy = 0.995 bits (maximum 1 bit): the column is almost
   perfectly balanced, so the category is hard to guess.
+
+
+
+---
+
+## PW4 - Machine Learning
+
+### Session A - Concrete strength
+
+Dataset: UCI Concrete Compressive Strength, I-C. Yeh (1998), "Modeling of strength of
+high-performance concrete using artificial neural networks", Cement and Concrete Research
+28(12). 1030 laboratory tests, 8 inputs, 1 output, no missing values.
+
+**Variables and units:**
+- cement, slag (blast furnace slag), ash (fly ash), water, superplastic (superplasticizer),
+  coarse_agg, fine_agg: kg per m3 of concrete.
+- age: days (1 to 365).
+- strength (target): compressive strength in MPa.
+
+
+**Cleaning (A2):**
+- 25 duplicate rows found and removed (1030 -> 1005 rows); no missing values.
+- A row appearing twice is a problem for a train/test split: the same row can land in both
+  parts, so the model is tested on an example it has already seen, and the test score looks
+  better than it really is (data leakage).
+- Largest numerical scales: coarse_agg (~974) and fine_agg (~773), then water and cement;
+  superplastic (~6) is far smaller. Scaling will matter later.
+- strength vs cement: positive trend but very scattered, cement alone does not determine strength.
+- strength vs age: grows quickly in the first weeks then flattens (curved, not a straight line).
+
+
+
+**Linear regression (A4):**
+strength = -23.39 + 0.1167 cement + 0.0981 slag + 0.0846 ash - 0.1314 water
++ 0.3315 superplastic + 0.0155 coarse_agg + 0.0207 fine_agg + 0.1106 age
+(MPa per kg/m3 for ingredients, MPa per day for age; intercept in MPa)
+
+| model | train RMSE | test RMSE | test MAE | train R2 | train adj R2 | test R2 |
+|---|---|---|---|---|---|---|
+| linear | 10.00 | 11.19 | 8.90 | 0.61 | 0.606 | 0.58 |
+
+Residuals vs age (log axis): the residuals are negative at 3-7 days, positive at 28-100
+days and negative again at 180-365 days, an arch shape. A systematic pattern means the
+model is missing structure: here the effect of age is curved (strong early growth that
+flattens), but a linear model forces a straight line. Train and test errors are close, so
+this is underfitting, not overfitting.
+
+
+**Polynomial regression (A5):**
+
+| degree | p | train RMSE | test RMSE | train R2 | train adj R2 | test R2 |
+|---|---|---|---|---|---|---|
+| 1 | 8 | 10.00 | 11.19 | 0.610 | 0.606 | 0.580 |
+| 2 | 44 | 6.99 | 8.31 | 0.809 | 0.798 | 0.769 |
+| 3 | 164 | 4.40 | 5.95 | 0.925 | 0.905 | 0.881 |
+| 4 | 494 | 2.33 | 39.41 | 0.979 | 0.945 | -4.206 |
+
+I would choose degree 3: it has the lowest test error (RMSE 5.95, R2 0.88), and going
+from degree 1 to 3 keeps improving the test score. At degree 4 there are 494 features for
+only 804 training rows, so the model memorises the training data: train RMSE drops to 2.33
+while test RMSE explodes to 39.4 (negative test R2). Adjusted R2 does not protect against
+this: it is computed on training data and gives degree 4 the highest value (0.945), so only
+the score on unseen data reveals the overfitting. (Note: choosing the degree with the test
+set slightly reuses it; cross-validation would be the cleaner way.)
+
+
+**Classification (A6):** target = strength >= 40 MPa (35.8% class 1, 64.2% class 0; always
+guessing "no" would give 64.2% accuracy).
+
+| K | train acc | test acc |
+|---|---|---|
+| 1 | 0.998 | 0.831 |
+| 3 | 0.934 | 0.801 |
+| 5 | 0.907 | 0.816 |
+| 7 | 0.893 | 0.836 |
+| 15 | 0.848 | 0.826 |
+| 25 | 0.841 | 0.806 |
+| 51 | 0.805 | 0.781 |
+| 101 | 0.757 | 0.736 |
+
+I chose K = 7 (best test accuracy, much smaller train-test gap than K = 1). With the
+scaler the test accuracy is 0.836, without it 0.821. Over five splits (random_state 0-4)
+the test accuracy was 0.801, 0.851, 0.821, 0.836, 0.806 (mean 0.823, std 0.019), so the
+scaler difference (0.015) and the differences between K = 1, 7 and 15 are within noise;
+only large differences (e.g. K = 101 vs K = 7, about 0.10) are meaningful.
+
+| max_depth | leaves | train acc | test acc |
+|---|---|---|---|
+| 1 | 2 | 0.755 | 0.701 |
+| 2 | 4 | 0.755 | 0.701 |
+| 3 | 8 | 0.840 | 0.796 |
+| 4 | 16 | 0.869 | 0.826 |
+| 5 | 26 | 0.889 | 0.846 |
+| 6 | 38 | 0.930 | 0.841 |
+| 8 | 61 | 0.973 | 0.856 |
+| None | 80 | 0.998 | 0.881 |
+
+The train-test gap stays near 0.04-0.05 up to depth 5 and doubles from depth 6. I chose
+depth 5 (26 leaves): the last depth before the gap grows, still readable. The unlimited tree
+has the best test accuracy (0.881) but 80 leaves cannot be read, so we lose
+
+
+**Metrics (A7):**
+
+| model | TP | FP | FN | TN | accuracy | precision | recall | F1 |
+|---|---|---|---|---|---|---|---|---|
+| KNN (K=7) | 54 | 15 | 18 | 114 | 0.836 | 0.783 | 0.750 | 0.766 |
+| Tree (depth=5) | 58 | 17 | 14 | 112 | 0.846 | 0.773 | 0.806 | 0.789 |
+
+The dangerous mistake is a false positive (the model says the mix reaches 40 MPa but it
+does not): weak concrete could be used in a structure. It is controlled by precision
+= TP/(TP+FP). A false negative only wastes good concrete and is controlled by recall.
+
+KNN at different thresholds on the predicted probability of class 1:
+
+| threshold | TP | FP | FN | TN | precision | recall |
+|---|---|---|---|---|---|---|
+| 0.3 | 61 | 23 | 11 | 106 | 0.726 | 0.847 |
+| 0.5 | 54 | 15 | 18 | 114 | 0.783 | 0.750 |
+| 0.7 | 39 | 11 | 33 | 118 | 0.780 | 0.542 |
+| 0.9 | 18 | 1 | 54 | 128 | 0.947 | 0.250 |
+
+I choose threshold 0.9: only 1 false positive and precision 0.947, which matters most
+when weak concrete is dangerous. The price is recall 0.25: three quarters of the mixes
+that really reach 40 MPa are rejected, so many good mixes need extra testing.
+
+
+**Feature importance (A8):**
+
+| | raw coef | std coef | tree | perm KNN | perm tree |
+|---|---|---|---|---|---|
+| cement | 0.117 | 12.12 | 0.253 | 0.165 | 0.170 |
+| slag | 0.098 | 8.44 | 0.036 | 0.055 | 0.009 |
+| ash | 0.085 | 5.44 | 0.037 | 0.016 | 0.000 |
+| water | -0.131 | -2.83 | 0.095 | 0.068 | 0.012 |
+| superplastic | 0.332 | 1.97 | 0.164 | 0.066 | 0.188 |
+| coarse_agg | 0.016 | 1.20 | 0.011 | 0.038 | 0.002 |
+| fine_agg | 0.021 | 1.67 | 0.091 | 0.081 | 0.072 |
+| age | 0.111 | 6.89 | 0.313 | 0.176 | 0.165 |
+
+Raw coefficients have different units (per kg/m3, per day) and depend on each variable's
+scale: superplastic ranks first by raw coefficient only because it varies over a small
+range. The standardised coefficient is the raw one times the standard deviation of the
+input (MPa per standard deviation), which makes inputs comparable; superplastic then falls
+to sixth place. The methods agree that cement and age are among the three most important
+inputs. They disagree on slag (high only in the linear model) and superplastic (first only
+for the permutation importance of one tree). The linear model underestimates age because
+its effect is curved. This is consistent with age being key, but water appears only
+mid-ranked because the engineers' water-to-cement
+
+
+**Bonus - physics-chosen features (plain LinearRegression):**
+
+| features | p | test RMSE | test R2 |
+|---|---|---|---|
+| raw inputs | 8 | 11.19 | 0.580 |
+| log(age) | 8 | 7.65 | 0.804 |
+| log(age) + w/b | 8 | 7.60 | 0.806 |
+| polynomial degree 2 | 44 | 8.31 | 0.769 |
+| polynomial degree 3 | 164 | 5.95 | 0.881 |
+
+Replacing age by log(age) alone raised the linear model's test R2 from 0.58 to 0.80 with
+the same 8 features, better than the 44-feature degree-2 polynomial. Replacing water by the
+water-to-binder ratio added almost nothing (0.806). Domain knowledge (strength grows with
+the logarithm of age) gave more than blind flexibility per added feature; degree 3 is still
+better (0.88) but uses 164 features and degree 4 showed how flexibility can overfit.
